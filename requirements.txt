@@ -1,0 +1,8 @@
+streamlit
+torch
+torchvision
+torchaudio
+transformers
+accelerate
+safetensors
+git+https://github.com/openai/shap-e.git
