@@ -1,7 +1,5 @@
 streamlit
-torch
-diffusers
-transformers
-accelerate
-safetensors
+pillow
+numpy
 open3d
+pyvista
