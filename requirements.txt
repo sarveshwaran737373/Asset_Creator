@@ -1,9 +1,7 @@
 streamlit
 torch
-torchvision
-torchaudio
+diffusers
 transformers
 accelerate
 safetensors
-ipywidgets
-git+https://github.com/VAST-AI/TripoSR.git
+open3d
