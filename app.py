@@ -1,51 +1,41 @@
 import streamlit as st
-from tripoSR import TripoSR
+from diffusers import StableDiffusionPipeline
+import torch
 import os
 
-st.set_page_config(page_title="Private 3D Asset Creator", layout="centered")
-st.title("🧱 Unlimited Private 3D Asset Creator (TripoSR)")
-st.write("Generate 3D models from text prompts or images. Runs locally or on Streamlit Cloud.")
+st.set_page_config(page_title="AI Asset Creator", layout="centered")
+st.title("🧱 AI Asset Creator (Diffusers)")
+st.write("Generate images from text prompts. Runs locally or on Streamlit Cloud.")
 
 OUTPUT_DIR = "generated_assets"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Initialize TripoSR model
-model = TripoSR()
+# Load Stable Diffusion model
+device = "cuda" if torch.cuda.is_available() else "cpu"
+st.info("Loading Stable Diffusion model... please wait.")
+pipe = StableDiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5")
+pipe = pipe.to(device)
+st.success("Model loaded successfully!")
 
-def generate_from_text(prompt: str):
-    mesh = model.text_to_3d(prompt)
-    filename = os.path.join(OUTPUT_DIR, f"{prompt.replace(' ', '_')}.obj")
-    mesh.export(filename)
+def generate_image(prompt: str):
+    image = pipe(prompt).images[0]
+    filename = os.path.join(OUTPUT_DIR, f"{prompt.replace(' ', '_')}.png")
+    image.save(filename)
     return filename
 
-def generate_from_image(image_file):
-    mesh = model.image_to_3d(image_file)
-    filename = os.path.join(OUTPUT_DIR, f"{image_file.name}.obj")
-    mesh.export(filename)
-    return filename
-
-# Text-to-3D section
-st.header("📝 Text to 3D Model")
+# Text-to-Image section
+st.header("📝 Text to Image")
 prompt = st.text_input("Enter a description (e.g., 'Minecraft-style grass block')")
-if st.button("Generate from Text"):
+if st.button("Generate Image"):
     if prompt.strip() == "":
         st.warning("Please enter a description first.")
     else:
-        st.info("Generating model... please wait.")
-        filename = generate_from_text(prompt)
-        st.success("Model generated successfully!")
+        st.info("Generating image... please wait.")
+        filename = generate_image(prompt)
+        st.success("Image generated successfully!")
+        st.image(filename, caption="Generated Asset")
         with open(filename, "rb") as f:
-            st.download_button("Download 3D Model (.obj)", f, file_name=os.path.basename(filename))
-
-# Image-to-3D section
-st.header("🖼️ Image to 3D Model")
-uploaded_image = st.file_uploader("Upload an image (e.g., photo of a chair)", type=["png", "jpg", "jpeg"])
-if uploaded_image is not None:
-    st.info("Generating model from image... please wait.")
-    filename = generate_from_image(uploaded_image)
-    st.success("Model generated successfully!")
-    with open(filename, "rb") as f:
-        st.download_button("Download 3D Model (.obj)", f, file_name=os.path.basename(filename))
+            st.download_button("Download Image (.png)", f, file_name=os.path.basename(filename))
 
 st.write("---")
-st.write("Built with TripoSR. Runs locally or on Streamlit Cloud.")
+st.write("Built with Hugging Face Diffusers. Works on Streamlit Cloud (CPU).")
